@@ -74,7 +74,17 @@ svg {
 
 
 @media (max-width : 500px) {
-    .content{
-        font-size: 30px;
+    .content .text{
+        font-size: 25px;
+    }
+
+    .content button{
+        width: 170px;
+        height: 70px;
+        font-size: 25px;
+    }
+
+    .content .alert{
+        font-size: 15px ;
     }
 }
