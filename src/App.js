@@ -1,19 +1,43 @@
-import React , {useState , useEffect}from 'react';
+import React , {useEffect , useReducer}from 'react';
 import './App.css';
 
-
+const initialState = {
+    joke : '',
+    buttonClick : false,
+    loading : false,
+    punchline : true
+}
 
 const App = () => {
 
-const [joke , setjoke] = useState('');
-const [change , setchange] = useState(false);
-const [loading , setloading] = useState(false);
-const [punchline , setpunchline] = useState(false);
+
+/*useReducer here.......*/
+
+
+const reducer = (state , action) => {
+ switch (action.type) {
+     case 'FETCHING_JOKE' :
+         return {...state , joke : action.joke ,
+                punchline : !state.punchline }
+        
+     case 'FETCH_ONE_MORE':
+         return {...state ,buttonClick : !state.buttonClick}
+
+     case 'LOADING':
+         return {...state ,loading : !state.loading}
+    default :
+        return state
+     
+ }
+}
+const [jokeState , dispatch] = useReducer(reducer,initialState);
 
 
 useEffect(
     () => {
-        setloading(false);
+        
+        
+        dispatch({type : 'LOADING'})
         let data = jokeApi('https://official-joke-api.appspot.com/jokes/random');
         data.then(
             (randomJoke) => {
@@ -21,23 +45,26 @@ useEffect(
                     joke : randomJoke.setup,
                     punchline : randomJoke.punchline
                 }
-                setjoke(badJoke.joke)
-                setpunchline(false);
-                setTimeout(()=>{
-                setjoke(badJoke.punchline)
+                dispatch({type : 'FETCHING_JOKE' , joke : badJoke.joke})
 
-                setpunchline(true)
-
+                setTimeout(()=>{    
+                dispatch({type : 'FETCHING_JOKE' , joke : badJoke.punchline})
                 },4000)
 
-                setloading(true);
+                dispatch({type : 'LOADING'})
                 
+                console.log(jokeState); 
             }
+           
         ).catch((error) => {console.log(error)
-        setjoke('Aww Sed some issue came up')}
+        dispatch({type : 'LOADING'})
+        dispatch({type : 'FETCHING_JOKE' , joke: 'Aww Sed some issue came up'})
+        }
         )
+   
         
-    },[change]
+        
+    },[jokeState.buttonClick]
 )
 
 
@@ -53,11 +80,7 @@ const jokeApi = async (endpoint) => {
             <div className = 'content'>
 
                 {
-                    (loading) ? (
-                        <p className="text">
-                        {joke}
-                        </p>
-                    ): (
+                    (jokeState.loading) ?  (
                         /*<!-- By Sam Herbert (@sherb), for everyone. More @ http://goo.gl/7AJzbL -->*/
                         <svg width="38" height="38" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -90,15 +113,19 @@ const jokeApi = async (endpoint) => {
                                 </g>
                             </g>
                         </svg>
+                    ):(
+                        <p className="text">
+                        {jokeState.joke}
+                        </p>
                     )
                 }
 
 
 
-                {(punchline)? ('') : (<p className="alert">Wait for the punchline</p>)}
+                {(jokeState.punchline)? ('') : (<p className="alert">Wait for the punchline</p>)}
 
 
-                <button onClick = {() => setchange(change => !change)}>
+                <button onClick = {() => {dispatch({type : 'FETCH_ONE_MORE'}) }}>
                     One more?
                 </button>
 
